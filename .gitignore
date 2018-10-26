@@ -1,6 +1,11 @@
 # Prerequisites
 *.d
 
+[Dd]ebug/
+[Rr]elease/
+
+~*
+
 # Compiled Object files
 *.slo
 *.lo

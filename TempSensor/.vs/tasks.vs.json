@@ -1,0 +1,15 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskName": "task-DHT_U",
+      "appliesTo": "lib/DHT_sensor_library/DHT_U.cpp",
+      "type": "launch"
+    },
+    {
+      "taskName": "task-RadioHead",
+      "appliesTo": "RadioHead/",
+      "type": "launch"
+    }
+  ]
+}

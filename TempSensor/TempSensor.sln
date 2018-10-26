@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TempSensor", "TempSensor.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NodeMcuEval", "..\NodeMcuEval\NodeMcuEval.vcxproj", "{A6DD2071-A366-48C8-8B8C-6F0ED44F94C9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoCentral", "..\ArduinoCentral\ArduinoCentral.vcxproj", "{B86A801A-10BB-4422-8311-577504D85E33}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
+		{A6DD2071-A366-48C8-8B8C-6F0ED44F94C9}.Debug|x86.ActiveCfg = Debug|Win32
+		{A6DD2071-A366-48C8-8B8C-6F0ED44F94C9}.Debug|x86.Build.0 = Debug|Win32
+		{A6DD2071-A366-48C8-8B8C-6F0ED44F94C9}.Release|x86.ActiveCfg = Release|Win32
+		{A6DD2071-A366-48C8-8B8C-6F0ED44F94C9}.Release|x86.Build.0 = Release|Win32
+		{B86A801A-10BB-4422-8311-577504D85E33}.Debug|x86.ActiveCfg = Debug|Win32
+		{B86A801A-10BB-4422-8311-577504D85E33}.Debug|x86.Build.0 = Debug|Win32
+		{B86A801A-10BB-4422-8311-577504D85E33}.Release|x86.ActiveCfg = Release|Win32
+		{B86A801A-10BB-4422-8311-577504D85E33}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8B4F1DD0-F072-4D8D-83F6-3D932D38B9DF}
+	EndGlobalSection
+EndGlobal
