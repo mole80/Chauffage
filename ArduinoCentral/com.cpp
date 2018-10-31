@@ -104,7 +104,7 @@ String sendCmd(String cmd, bool block = false) {
 }
 
 
-bool ComBuff::AddChar(char val) {
+/*bool ComBuff::AddChar(char val) {
 	newCommand = false;
 	static int nbrMax = 0;
 
@@ -116,30 +116,24 @@ bool ComBuff::AddChar(char val) {
 		nbrVal++;
 	}
 
-	/*else {
-		Serial.println( "ok " + String( (byte)val ) );
-	}*/
 	
-	//Serial.println("char : " + val);
 	if (nbrVal >= 7 || nbrVal < 0) {
 		if (buff[0] == 0xA5) {
-			//printInfo("New cmd : ");
 			newCommand = true;
 		}
 		else {
-			//printInfo("Error : " + String(nbrVal) );
 			nbrVal = 0;
 		}
 	}
 
 	return newCommand;
-}
+}*/
 
 byte ComBuff::GetCheck() {
 	return buff[0] + buff[1] + buff[2] + buff[3] + buff[4] + buff[5];
 }
 
-void ComBuff::ClearCommand() {
+/*void ComBuff::ClearCommand() {
 	nbrVal = 0;
 	newCommand = false;
-}
+}*/

@@ -138,19 +138,19 @@ public:
 	{
 		switch(id)
 		{
-		case 1:
+		case 0:
 			num_io = 5;
 			break;
-		case 2:
+		case 1:
 			num_io = 6;
 			break;
-		case 3:
+		case 2:
 			num_io = 4;
 			break;
-		case 4:
+		case 3:
 			num_io = 3;
 			break;
-		case 5:
+		case 4:
 			num_io = 2;
 			break;
 		default:
@@ -159,12 +159,12 @@ public:
 	}
 
 	void OpenValve() {
-		digitalWrite(num_io, HIGH);
+		digitalWrite(num_io, LOW);
 		isOpen = true;
 	}
 
 	void CloseValve() {
-		digitalWrite(num_io, LOW);
+		digitalWrite(num_io, HIGH);
 		isOpen = false;
 	}
 
@@ -190,21 +190,23 @@ public:
 		tempSensor(rad),
 		valve( Valve(id) )
 	{
+		target = 0.0;
+
 		switch(id)
 		{
-		case 1:
+		case 0:
 			adcChannelTemp = 7;
 			break;
-		case 2:
+		case 1:
 			adcChannelTemp = 6;
 			break;
-		case 3:
+		case 2:
 			adcChannelTemp = 5;
 			break;
-		case 4:
+		case 3:
 			adcChannelTemp = 4;
 			break;
-		case 5:
+		case 4:
 			adcChannelTemp = 3;
 			break;
 		default:
@@ -225,6 +227,18 @@ public:
 	}
 
 	void ExecuteRegulation() {
+		float meas = tempSensor.GetTemp();
+		float tar = tempTarget.ReadTemp();
+
+		if (target <= 0.0) {
+			if ( meas < tar ) {
+				target = tar + 0.2;
+			}
+			else {
+				target = tar - 0.2;
+			}
+		}
+
 		// Security mode PWM fixe
 		// timeout 1s @600 = 10min sans signal
 		if ( tempSensor.GetTimeout() > 600 ) {
@@ -241,8 +255,16 @@ public:
 			}
 		}
 		else {
+
+			if (meas > tar + 0.2) {
+				target = tar - 0.2;
+			}
+			else if (meas < tar - 0.2) {
+				target = tar + 0.2;
+			}
+
 			cpt = 0;
-			if (tempSensor.GetTemp() < tempTarget.ReadTemp()) {
+			if (tempSensor.GetTemp() < target ) {
 				valve.OpenValve();
 			}
 			else {
@@ -268,7 +290,8 @@ public:
 	}
 
 	String GetTargetAsString() {
-		return String(tempTarget.ReadTemp());
+		//return String(tempTarget.ReadTemp());
+		return String(target);
 	}
 
 	String GetTempStartAsString() {
@@ -297,6 +320,7 @@ public:
 	}
 
 private:
+	float target;
 	uint32_t duty;
 	uint32_t freq;
 	uint32_t cpt;

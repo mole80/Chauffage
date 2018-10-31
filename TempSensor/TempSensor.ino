@@ -19,9 +19,9 @@
 #include <avr/sleep.h>
 #include <avr/power.h>
 
-volatile int f_timer = 1;
+volatile int f_timer = 0;
 
-#define SENSOR_ID 3
+#define SENSOR_ID 2
 
 #define DHTPIN 7     // what pin we're connected to
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
@@ -164,9 +164,9 @@ void loop() {
 			hum = dht.readHumidity();
 			temp = dht.readTemperature();
 
-			for (int i = 0; i < 10; i++)
+			for (int i = 0; i < 4; i++)
 			{
-				byte buff[20];
+				byte buff[21];
 
 				buff[0] = 0xA5;
 
@@ -180,9 +180,20 @@ void loop() {
 				buff[4] = (tmp >> 8) & 0xFF;
 				buff[5] = tmp & 0xFF;
 
+				/*buff[0] = 0xA5;
+				buff[1] = 0x1;
+				buff[2] = 0x2;
+				buff[3] = 0x3;
+				buff[4] = 0x4;
+				buff[5] = 0x5;*/
+
 				buff[6] = buff[0] + buff[1] + buff[2] + buff[3] + buff[4] + buff[5];
 
-				Serial.write(buff, 7);
+				for (int k = 7; k < 21; k++) {
+					buff[k] = buff[k % 7];
+				}
+
+				Serial.write(buff, 21);
 				Serial.flush();
 
 				delay(10);

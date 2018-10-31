@@ -39,11 +39,22 @@ public:
 		meas = "";
 		cpt = "";
 		timeout = "";
+		newTarget = false;
 	}
+
+	String GetNewTargetAsString() {
+		if (newTarget) {
+			return "t";
+		}
+		else {
+			return "f";
+		}
+	}
+
 	int id;
+	bool newTarget;
 	String timeout;
 	String cpt;
-	//String name;
 	String valveOpen;
 	String target;
 	String meas;
@@ -58,7 +69,6 @@ public:
 		id = -1;
 	}
 	int id;
-	//String name;
 	String temp;
 	String hum;
 	String tick;
@@ -70,7 +80,7 @@ Sensor sensors[NBR_SENSORS_MAX];
 #define NBR_ROOM_MAX	10
 Room rooms[NBR_ROOM_MAX];
 
-#define DEBUG_INFO false
+#define DEBUG_INFO false 
 void printDebug(String text)
 {
 	if (DEBUG_INFO){
@@ -89,11 +99,6 @@ void connect(String ssid, String pass, IPAddress add) {
 
 	WiFi.begin(ssid.c_str(), pass.c_str());
 	
-	/*while (WiFi.status() != WL_CONNECTED) {
-		delay(500);
-		printDebug(".");
-	}*/
-
 	printDebug("");
 	printDebug("WiFi connected");
 	server.begin();
@@ -110,15 +115,9 @@ String GetNextParam()
 	String param = "";
 	while (cmdTmp[ind] != '\r' && cmdTmp[ind] != ',') {
 		param += (String)cmdTmp[ind];
-		//Serial.println("Del : " + (String)cmdTmp[ind]);
-		//delay(100);
 		ind++;
-		//delay(100);
 	}
-	
-	//Serial.println("Del end ind : " + String(ind) + "\r\n");
 	cmdTmp.remove(0, ind+1);
-	//Serial.println("Rest : " + cmdTmp + "\r\n");
 	printDebug("Param : " + param + "\r\n");
 
 	return param;
@@ -150,27 +149,6 @@ void setup()
 	printDebug("Start device");
 	WiFi.setAutoConnect(false);
 	WiFi.setAutoReconnect(false);
-	//Serial.println();
-	//Serial.println();
-	//Serial.print("Connecting to ");
-	//Serial.println(ssid);
-	//WiFi.begin(ssid, pass);
-	//while (WiFi.status() != WL_CONNECTED) {
-	//	delay(500);
-	//	Serial.print(".");
-	//}
-	//Serial.println("");
-	//Serial.println("WiFi connected");
-	//server.begin();
-	//Serial.println("Server started");
-	//Serial.print("Use this URL to connect: ");
-	//Serial.print("http://");
-	//Serial.print(WiFi.localIP());
-	//Serial.println("/");
-
-	printDebug("Start watchdog");
-	//ESP.wdtDisable();
-	//wdt_enable(1000U);
 }
 
 
@@ -191,7 +169,6 @@ String GetNextValue(String *str) {
 
 void sendRep(String text) {
 	Serial.println(text + "\r\n");
-	//ESP.wdtFeed();
 }
 
 void endRep() {
@@ -241,17 +218,12 @@ void loop()
 
 	while (Serial.available() > 0){
 		if( AddChar(Serial.read()) ){ 
-			//TestCmd();
 			newCmd = true;
 		}
 	}
 
-	//if (Serial.available() > 0 && Serial.find("cmd_") && Serial.find('\r') )
 	if( newCmd )
 	{
-		//ESP.wdtFeed();
-
-		//cmd = Serial.readString();
 		cmdTmp = TestCmd();
 		printDebug("rec : " + cmdTmp);
 
@@ -261,7 +233,19 @@ void loop()
 			state = 3;
 		}
 		else if (p.equalsIgnoreCase("gs")) {
-			sendRep(String(state));
+			bool changed = false;
+			for (int k = 0; k < NBR_ROOM_MAX; k++) {
+				if (rooms[k].newTarget) {
+					changed = true;
+				}
+			}
+
+			if (changed) {
+				sendRep(String(state+10));
+			}
+			else {
+				sendRep(String(state));
+			}
 		}
 		else if ( p.equalsIgnoreCase("ctn") ) {
 			cmdId = 1;
@@ -297,7 +281,6 @@ void loop()
 			uint8_t index = id % 10;
 			if (index < NBR_SENSORS_MAX) {
 				sensors[index].id = id;
-				//sensors[id].name = "capt";// GetNextParam();
 				sensors[index].temp = "0";
 				sensors[index].hum = "0";
 				sensors[index].tick = "0";
@@ -328,7 +311,6 @@ void loop()
 			int id = GetNextParam().toInt();
 			if (id < NBR_ROOM_MAX) {
 				rooms[id].id = id;
-				//rooms[id].name = "Room";// GetNextParam();
 				rooms[id].target = GetNextParam();
 				rooms[id].valveOpen = "C";
 
@@ -339,11 +321,14 @@ void loop()
 			int id = GetNextParam().toInt();
 			if (id < NBR_ROOM_MAX) {
 				sendRep("Room," + String(id) + "," +
+					rooms[id].GetNewTargetAsString() + ',' +
 					rooms[id].target + ',' +
 					rooms[id].meas + ',' +
 					rooms[id].tempStart + ',' +
 					rooms[id].tempStop + ',' +
 					rooms[id].valveOpen);
+
+				rooms[id].newTarget = false;
 			}
 			else {
 				endRep();
@@ -371,7 +356,7 @@ void loop()
 		}
 	}
 
-	switch (state)
+	switch (state%10)
 	{
 	case 0:
 		if (cmdId == 1) {
@@ -405,7 +390,6 @@ void loop()
 			state = 1;
 		}
 
-		//state = 1;
 		break;
 
 	case 3:
@@ -446,6 +430,7 @@ void loop()
 			String val = GetNextValue(&request);
 
 			rooms[id].target = val;
+			rooms[id].newTarget = true;
 			printDebug("Room set : " + String(id) + " : " + val);
 		}
 

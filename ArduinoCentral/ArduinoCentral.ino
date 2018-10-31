@@ -1,4 +1,12 @@
 
+// Example of value sent by computer to read information
+// 192.168.43.15
+
+// Command to set new target
+// 192.168.43.15/targ=0,18.2,
+// IP / targ= id , temp ,
+// Don't forget the last comma to show the end of command
+
 #define DEB false
 #include "Sensor.h"
 #include "com.h"
@@ -74,14 +82,13 @@ Room rooms[] = {
 uint16_t nbrRoom = 5;
 #endif 
 
-uint8_t GetRadioSensorIndex(uint16_t id) {
+int16_t GetRadioSensorIndex(uint16_t id) {
 	for (uint8_t k = 0; k < nbrSensor; k++) {
 		if (radioSensors[k].GetId() == id) {
 			return k;
 		}
 	}
-
-	while (1) {}
+	return -1;
 }
 
 bool TestEndCommand(String cmd) {
@@ -126,6 +133,7 @@ void ConfigureESP() {
 	Serial.println("Connect WIFI");
 	delay(100);
 	sendCmd("ctnm", false);
+	//sendCmd("ctn,AndroidAP,chlu9480,192,168,43,15", false);
 	delay(100);
 	Serial.println("Start config");
 	delay(100);
@@ -176,27 +184,58 @@ int lastSensorId = -1;
 
 uint8_t cpt_update_meas_temp;
 
+String GetNextValue(String *str) {
+	int ind = 0;
+	String val = "";
+	while ( (*str)[ind] != ',' && (*str)[ind] != '\r' && ind < str->length()) {
+		val += (*str)[ind];
+		ind++;
+	}
+
+	(*str).remove(0, ind + 1);
+
+	return val;
+}
+
 #define TIMEOUT_WIFI 60	// Second
 int16_t cpt_wifi = TIMEOUT_WIFI;
 void CheckConnexionWifi() {
 
 	String status = sendCmd("gs", false);
-	if ( status[0] == '1' ) {
-		if (cpt_wifi < TIMEOUT_WIFI ) {
-			cpt_wifi++;
+	int l = status.length();
+	if (l >= 6) {
+		for (int r = 0; r < nbrRoom; r++) {
+			String rs = sendCmd("rroom," + String(r));
+			GetNextValue(&rs);
+			int id = GetNextValue(&rs).toInt();
+			String targetString = GetNextValue(&rs);
+			bool newVal = targetString == "t" ? true : false;
+			String val = GetNextValue(&rs);
+
+			if (newVal) {
+				rooms[r].tempTarget.SetTemp(val.toFloat());
+				Serial.println("Update target : " + String(id) + " -- " + val);
+			}
 		}
 	}
 	else {
-		if (cpt_wifi <= 0) {
-			ConfigureESP();
-			cpt_wifi = TIMEOUT_WIFI;
+		if (status[0] == '1') {
+			if (cpt_wifi < TIMEOUT_WIFI) {
+				cpt_wifi++;
+			}
 		}
 		else {
-			cpt_wifi--;
-			printInfo("Wifi error, timeout : " + 
-				String(cpt_wifi) + 
-				" - Status : " + 
-				String(status));
+			if (cpt_wifi <= 0) {
+				ConfigureESP();
+				cpt_wifi = TIMEOUT_WIFI;
+			}
+			else {
+				cpt_wifi--;
+				printInfo("Wifi error, timeout : " +
+					String(cpt_wifi) +
+					" - Status : " +
+					String(status));
+			}
 		}
 	}
 }
@@ -246,32 +285,71 @@ void loop(){
 
 
 	while (Serial1.available() > 0) {		
-		comBuff.AddChar( Serial1.read() );
+		comBuff.AddValue( Serial1.read() );
 	}
 
-	if(comBuff.newCommand){
-			int id = comBuff.buff[1];
-			if (id > 0 && id < 30) {
-				uint8_t index = GetRadioSensorIndex(id);
+	/*Serial.println(
+		"val : " + String(comBuff.nbrVal) +
+		" -- ind R : " + String(comBuff.index_read) +
+		" --  ind W : " + String(comBuff.index_write) 
+	);*/
 
-				//if ( check == buff[6] && id != lastSensorId )
-				if (comBuff.GetCheck() == comBuff.buff[6] && index < 10 && index >= 0)
-				{
-					RadioSensor& r = radioSensors[index];
+	while(comBuff.RecievedCommand()){
+		uint8_t buff[7];
 
-					lastSensorId = id;
-					temp = ((comBuff.buff[2] << 8) + comBuff.buff[3]) / 100.0;
-					hum = ((comBuff.buff[4] << 8) + comBuff.buff[5]) / 100.0;
+		/*Serial.println("Before Get, iw : " + String(comBuff.index_write) + " -- " +
+			"ir : " + String(comBuff.index_read) + " -- " +
+			"nbVal : " + String(comBuff.nbrVal)
+		);*/
 
-					tick_meas++;
-					r.SetMeasure(temp, hum);
-					sendCmd("scapt," + String(id) + "," + String(temp) + "," + String(hum) + "," + String(tick_meas), false);
+		for (uint8_t k = 0; k < 7; k++) {
+			buff[k] = comBuff.GetValue();
+		}
 
-					Serial.println("New temp " + String(r.GetCptMeas()) + " id " + String(id) + " : " + String(temp) + " -- " + String(hum));
-					Serial.flush();
+		/*Serial.println("After Get, iw : " + String(comBuff.index_write) + " -- " +
+			"ir : " + String(comBuff.index_read) + " -- " +
+			"nbVal : " + String(comBuff.nbrVal) + " -- " +
+			"id : " + String(buff[1])
+		);*/
+
+
+		int id = buff[1];
+		if (id > 0 && id < 30) {
+				int16_t index = GetRadioSensorIndex(id);
+
+				if (index < nbrSensor) {
+					uint8_t check = buff[0] + buff[1] + buff[2] + buff[3] + buff[4] + buff[5];
+
+					if (id == 1) {
+						Serial.println("### Check rec : " + String(buff[6]) + " -- " +
+							"Check calc : " + String(check) + " -- " +
+							"Index : " + String(index) + " -- " +
+							"Id : " + String(id) + " -- " +
+							"nbr value rest : " + String(comBuff.nbrVal)
+						);
+					}
+
+					//if ( check == buff[6] && id != lastSensorId )
+					if (check == buff[6] && index < 10 && index >= 0)
+					{
+						RadioSensor& r = radioSensors[index];
+
+						lastSensorId = id;
+						temp = ((buff[2] << 8) + buff[3]) / 100.0;
+						hum = ((buff[4] << 8) + buff[5]) / 100.0;
+
+						tick_meas++;
+						r.SetMeasure(temp, hum);
+						sendCmd("scapt," + String(id) + "," + String(temp) + "," + String(hum) + "," + String(tick_meas), false);
+
+						Serial.println("New temp " + String(r.GetCptMeas()) + " id " + String(id) + " : " + String(temp) + " -- " + String(hum));
+						Serial.flush();
+					}
 				}
-
-				comBuff.ClearCommand();
+				//comBuff.ClearCommand();
+			}
+			else {
+				//comBuff.ClearCommand();
 			}
 	}
 
