@@ -14,12 +14,14 @@
 #include <eeprom.h>
 #include <avr/wdt.h>
 
+#include "info.h"
+
 const bool printReply = true;
 const char line[] = "-----\n\r";
 int loopCount = 0;
 
-#define BOARD_FLOOR_1		0U	// Etage
-//#define BOARD_FLOOR_0		10U	// Rez de chaussé
+//#define BOARD_FLOOR_1		0U	// Etage
+#define BOARD_FLOOR_0		10U	// Rez de chaussé
 //#define BOARD_FLOOR_M1	20U  // Sous sol
 
 #ifdef  BOARD_FLOOR_1
@@ -60,12 +62,12 @@ uint16_t nbrRoom = 5;
 
 #ifdef  BOARD_FLOOR_0
 Room rooms[] = {
-	Room(0, radioSensors[1], 18, 0),
-	Room(1, radioSensors[2], 19, 1),
-	Room(2, radioSensors[3], 21, 2),
-	Room(3, radioSensors[4], 21, 3),
-	Room(4, radioSensors[5], 21, 4),
-	Room(5, radioSensors[6], 21, 5)
+	Room(0, radioSensors[1], 22, 0),
+	Room(1, radioSensors[2], 22, 1),
+	Room(2, radioSensors[3], 22, 2),
+	Room(3, radioSensors[4], 22, 3),
+	Room(4, radioSensors[5], 22, 4),
+	Room(5, radioSensors[6], 22, 5)
 };
 uint16_t nbrRoom = 5;
 #endif 
@@ -82,7 +84,7 @@ Room rooms[] = {
 uint16_t nbrRoom = 5;
 #endif 
 
-int16_t GetRadioSensorIndex(uint16_t id) {
+int16_t GetRadioSensorIndex(int16_t id) {
 	for (uint8_t k = 0; k < nbrSensor; k++) {
 		if (radioSensors[k].GetId() == id) {
 			return k;
@@ -132,8 +134,17 @@ void ConfigureESP() {
 
 	Serial.println("Connect WIFI");
 	delay(100);
-	sendCmd("ctnm", false);
-	//sendCmd("ctn,AndroidAP,chlu9480,192,168,43,15", false);
+	
+	String pass = WIFI_PASS;
+
+#ifdef BOARD_FLOOR_0
+	sendCmd("ctn,ResMaulPrive," + pass + ",192,168,100,150", false);
+#elif BOARD_FLOOR_1
+	sendCmd("ctn,ResMaulPrive," + pass + ",192,168,100,151", false);
+#elif BOARD_FLOOR_M1
+	sendCmd("ctn,ResMaulPrive," + pass + ",192,168,100,152", false);
+#endif
+	
 	delay(100);
 	Serial.println("Start config");
 	delay(100);
@@ -185,7 +196,7 @@ int lastSensorId = -1;
 uint8_t cpt_update_meas_temp;
 
 String GetNextValue(String *str) {
-	int ind = 0;
+	uint16_t ind = 0;
 	String val = "";
 	while ( (*str)[ind] != ',' && (*str)[ind] != '\r' && ind < str->length()) {
 		val += (*str)[ind];
@@ -197,14 +208,14 @@ String GetNextValue(String *str) {
 	return val;
 }
 
-#define TIMEOUT_WIFI 60	// Second
+#define TIMEOUT_WIFI 20	// Second
 int16_t cpt_wifi = TIMEOUT_WIFI;
 void CheckConnexionWifi() {
 
 	String status = sendCmd("gs", false);
 	int l = status.length();
 	if (l >= 6) {
-		for (int r = 0; r < nbrRoom; r++) {
+		for (uint16_t r = 0; r < nbrRoom; r++) {
 			String rs = sendCmd("rroom," + String(r));
 			GetNextValue(&rs);
 			int id = GetNextValue(&rs).toInt();
@@ -315,22 +326,22 @@ void loop(){
 
 		int id = buff[1];
 		if (id > 0 && id < 30) {
-				int16_t index = GetRadioSensorIndex(id);
+				uint16_t index = GetRadioSensorIndex(id);
 
 				if (index < nbrSensor) {
 					uint8_t check = buff[0] + buff[1] + buff[2] + buff[3] + buff[4] + buff[5];
 
-					if (id == 1) {
+					/*if (id == 1) {
 						Serial.println("### Check rec : " + String(buff[6]) + " -- " +
 							"Check calc : " + String(check) + " -- " +
 							"Index : " + String(index) + " -- " +
 							"Id : " + String(id) + " -- " +
 							"nbr value rest : " + String(comBuff.nbrVal)
 						);
-					}
+					}*/
 
-					//if ( check == buff[6] && id != lastSensorId )
-					if (check == buff[6] && index < 10 && index >= 0)
+					//if (check == buff[6] && index < 10 && index >= 0)
+					if (id != lastSensorId && check == buff[6] && index < 10 && index >= 0)
 					{
 						RadioSensor& r = radioSensors[index];
 

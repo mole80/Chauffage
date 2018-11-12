@@ -1,5 +1,7 @@
 #include "com.h"
 
+uint16_t nbrTimeout = 0;
+
 void printInfo(String text) {
 	if (PRINT_INFO) {
 		Serial.println(text);
@@ -87,9 +89,11 @@ String sendCmd(String cmd, bool block = false) {
 		//delay(100);
 		if (retry <= 0) {
 			Serial.print("Rep : Timeout\r\n");
+			nbrTimeout++;
 		}
 		else {
 			Serial.print("Rep : " + tmp);
+			nbrTimeout = 0;
 			res = true;
 		}
 		

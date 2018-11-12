@@ -223,7 +223,6 @@ public:
 	void UpdateTempValue(int adcValueStartWater) {
 		tempWaterStart = ConvToTemp(adcValueStartWater);
 		tempWaterEnd = ConvToTemp(analogRead(adcChannelTemp));
-		uint8_t a = 0;
 	}
 
 	void ExecuteRegulation() {

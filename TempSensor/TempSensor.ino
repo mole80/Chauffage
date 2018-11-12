@@ -21,7 +21,8 @@
 
 volatile int f_timer = 0;
 
-#define SENSOR_ID 2
+
+#define SENSOR_ID 1
 
 #define DHTPIN 7     // what pin we're connected to
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
