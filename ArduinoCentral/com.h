@@ -3,6 +3,12 @@
 
 #define PRINT_INFO	true
 
+//#define PRINT_COMMAND
+
+#ifdef PRINT_COMMAND
+	#define USE_ESP
+#endif
+
 void printInfo(String text);
 
 #define BUFFER_SIZE 256

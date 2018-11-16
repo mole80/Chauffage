@@ -18,11 +18,12 @@
 
 #include <avr/sleep.h>
 #include <avr/power.h>
+#include <avr/wdt.h>
 
 volatile int f_timer = 0;
 
 
-#define TEST_RADIO	true
+#define TEST_RADIO
 
 
 #define SENSOR_ID 15
@@ -81,7 +82,13 @@ void setupWdTimer() {
 	*	1    0    0    0    |  512K cycles  | 4.0 s
 	*	1    0    0    1    | 1024K cycles  | 8.0 s
 	*/
-	WDTCSR = (1 << WDP3) | (0 << WDP2) | (0 << WDP1) | (1 << WDP0);
+
+#ifndef TEST_RADIO
+	WDTCSR = (1 << WDP3) | (0 << WDP2) | (0 << WDP1) | (1 << WDP0);	// 8sec
+#else
+	WDTCSR = (0 << WDP3) | (1 << WDP2) | (0 << WDP1) | (1 << WDP0); // 0.5 sec
+#endif
+
 	// Enable the WD interrupt (note: no reset).
 	WDTCSR |= _BV(WDIE);
 }
@@ -150,22 +157,31 @@ void setup(){
 }
 
 float hum, temp;
+int cpt = 0;
 
 void loop() {
 
 	if (f_timer == 1) {
 		f_timer = 0;
 
-		/*int cpt = EEPROM.read(0);
-		if ( !TEST_RADIO && cpt >= 0 && cpt < 3) {
+	#ifdef TEST_RADIO
+		if(false){
+	#else
+		if ( cpt >= 0 && cpt < 3) {
+	#endif
 			cpt++;
-			EEPROM.write(0, cpt);
-		}*/
-		//else {
-			//EEPROM.write(0, 0);
+		}
+		else {
+			cpt = 0;
 
 			digitalWrite(DHT_POW, HIGH);
-			delay(1000 + SENSOR_ID * 100);
+			
+			#ifdef TEST_RADIO
+				delay(100);
+			#else
+				delay(100 + SENSOR_ID * 100);
+			#endif 
+
 			digitalWrite(RADIO_POW, HIGH);
 			hum = dht.readHumidity();
 			temp = dht.readTemperature();
@@ -208,7 +224,9 @@ void loop() {
 			digitalWrite(RADIO_POW, LOW);
 			digitalWrite(DHT_POW, LOW);
 
-		//}
+			
+			wdt_reset();
+		}
 	}
 	else {
 		delay(100);

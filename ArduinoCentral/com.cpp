@@ -51,6 +51,11 @@ String sendData(String command, const uint16_t timeout, boolean debug)
 String sendCmd(String cmd, bool block = false) {
 	bool res = false;
 
+#ifndef USE_ESP
+	return "\r\n";
+#endif // !USE_ESP
+
+
 		int retry = 100;
 
 		cmd += '\r';
@@ -58,14 +63,17 @@ String sendCmd(String cmd, bool block = false) {
 		while ( Serial2.available() > 0 )
 			Serial2.read();
 
+#ifdef PRINT_COMMAND
 		Serial.println("Send : " + cmd + "\r");
 		Serial.flush();
+#endif
+
 
 		//delay(100);
 
 		String tmp = "";
 		bool end = false;
-			Serial2.println("cmd_" + cmd);
+		Serial2.println("cmd_" + cmd);
 		Serial2.flush();
 		do {
 			if (Serial2.available() > 0)
@@ -88,11 +96,15 @@ String sendCmd(String cmd, bool block = false) {
 		//	rep = Serial2.readString();
 		//delay(100);
 		if (retry <= 0) {
-			Serial.print("Rep : Timeout\r\n");
+			#ifdef PRINT_COMMAND
+				Serial.print("Rep : Timeout\r\n");
+			#endif 
 			nbrTimeout++;
 		}
 		else {
-			Serial.print("Rep : " + tmp);
+			#ifdef PRINT_COMMAND
+				Serial.print("Rep : " + tmp);
+			#endif
 			nbrTimeout = 0;
 			res = true;
 		}

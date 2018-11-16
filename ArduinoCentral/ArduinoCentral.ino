@@ -20,6 +20,8 @@ const bool printReply = true;
 const char line[] = "-----\n\r";
 int loopCount = 0;
 
+
+
 //#define BOARD_FLOOR_1		0U	// Etage
 #define BOARD_FLOOR_0		10U	// Rez de chaussé
 //#define BOARD_FLOOR_M1	20U  // Sous sol
@@ -189,7 +191,10 @@ void setup()
 
 	printInfo("Start application : " );
 
+#ifdef USE_ESP
 	ConfigureESP();
+#endif // TEST_RADIO
+
 }
 
 ComBuff comBuff;
@@ -298,7 +303,6 @@ void loop(){
 	else {
 		cpt_update_meas_temp--;
 	}
-
 
 	while (Serial1.available() > 0) {		
 		comBuff.AddValue( Serial1.read() );
