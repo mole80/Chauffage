@@ -1,7 +1,7 @@
 
 //#include <RadioHead.h>
 
-#include <eeprom.h>
+//#include <eeprom.h>
 
 /*
 	Consomation :
@@ -22,9 +22,10 @@
 volatile int f_timer = 0;
 
 
+#define TEST_RADIO	true
 
 
-#define SENSOR_ID 11
+#define SENSOR_ID 15
 
 
 
@@ -155,13 +156,13 @@ void loop() {
 	if (f_timer == 1) {
 		f_timer = 0;
 
-		int cpt = EEPROM.read(0);
-		if ( cpt >= 0 && cpt < 3) {
+		/*int cpt = EEPROM.read(0);
+		if ( !TEST_RADIO && cpt >= 0 && cpt < 3) {
 			cpt++;
 			EEPROM.write(0, cpt);
-		}
-		else {
-			EEPROM.write(0, 0);
+		}*/
+		//else {
+			//EEPROM.write(0, 0);
 
 			digitalWrite(DHT_POW, HIGH);
 			delay(1000 + SENSOR_ID * 100);
@@ -207,10 +208,11 @@ void loop() {
 			digitalWrite(RADIO_POW, LOW);
 			digitalWrite(DHT_POW, LOW);
 
-			enterSleepModeWd();
-		}
+		//}
 	}
 	else {
 		delay(100);
 	}
+	
+	enterSleepModeWd();
 }
