@@ -195,7 +195,7 @@ bool AddChar(char val) {
 
 	bool res = false;
 
-	if (nbrVal > 50) {
+	if (nbrVal > 100) {
 		nbrVal = 0;
 	}
 

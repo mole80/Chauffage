@@ -62,11 +62,11 @@ uint16_t nbrRoom = 5;
 
 #ifdef  BOARD_FLOOR_0
 Room rooms[] = {
-	Room(0, radioSensors[1], 22, 0),
-	Room(1, radioSensors[2], 22, 1),
-	Room(2, radioSensors[3], 22, 2),
-	Room(3, radioSensors[4], 22, 3),
-	Room(4, radioSensors[5], 22, 4),
+	Room(0, radioSensors[1], 22, 0), // Valve 1, capteur 11, Salon TV
+	Room(1, radioSensors[1], 22, 1), // Valve 2, capteur 11, Salon
+	Room(2, radioSensors[4], 22, 2), // Valve
+	Room(3, radioSensors[2], 22, 3), // Valve 4, capteur 12, Cuisine
+	Room(4, radioSensors[3], 22, 4), // Valve 5, capteur 13, Hall
 	Room(5, radioSensors[6], 22, 5)
 };
 uint16_t nbrRoom = 5;
@@ -135,14 +135,19 @@ void ConfigureESP() {
 	Serial.println("Connect WIFI");
 	delay(100);
 	
-	String pass = WIFI_PASS;
+	const String name = WIFI_NAME;
+	const String pass = WIFI_PASS;
 
 #ifdef BOARD_FLOOR_0
-	sendCmd("ctn,ResMaulPrive," + pass + ",192,168,100,150", false);
-#elif BOARD_FLOOR_1
-	sendCmd("ctn,ResMaulPrive," + pass + ",192,168,100,151", false);
-#elif BOARD_FLOOR_M1
-	sendCmd("ctn,ResMaulPrive," + pass + ",192,168,100,152", false);
+	sendCmd("ctn," + name + "," + pass + ",192,168,100,60", false);
+#endif
+
+#ifdef BOARD_FLOOR_1
+	sendCmd("ctn," + name + "," + pass + ",192,168,100,61", false);
+#endif
+
+#ifdef BOARD_FLOOR_M1
+	sendCmd("ctn," + name + "," + pass + ",192,168,100,62", false);
 #endif
 	
 	delay(100);

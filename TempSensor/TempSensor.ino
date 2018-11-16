@@ -22,7 +22,11 @@
 volatile int f_timer = 0;
 
 
-#define SENSOR_ID 1
+
+
+#define SENSOR_ID 11
+
+
 
 #define DHTPIN 7     // what pin we're connected to
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
@@ -152,7 +156,7 @@ void loop() {
 		f_timer = 0;
 
 		int cpt = EEPROM.read(0);
-		if ( false && cpt >= 0 && cpt < 4) {
+		if ( cpt >= 0 && cpt < 3) {
 			cpt++;
 			EEPROM.write(0, cpt);
 		}
