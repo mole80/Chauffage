@@ -184,13 +184,13 @@ class Room : public BaseComp
 {
 public:
 	//Room(int16_t id, String name, RadioSensor rad, float defTarget, uint16_t idTempTarget) :
-	Room(int16_t id, RadioSensor& rad, float defTarget, uint16_t idTempTarget) :
+	Room(int16_t id, RadioSensor& rad, uint16_t defaultTarget) :
 		BaseComp(id),
-		tempTarget(defTarget, idTempTarget),
 		tempSensor(rad),
+		target(defaultTarget),
 		valve( Valve(id) )
 	{
-		target = 0.0;
+		targetComp = target;
 
 		switch(id)
 		{
@@ -227,16 +227,6 @@ public:
 
 	void ExecuteRegulation() {
 		float meas = tempSensor.GetTemp();
-		float tar = tempTarget.ReadTemp();
-
-		if (target <= 0.0) {
-			if ( meas < tar ) {
-				target = tar + 0.2;
-			}
-			else {
-				target = tar - 0.2;
-			}
-		}
 
 		// Security mode PWM fixe
 		// timeout 1s @600 = 10min sans signal
@@ -255,21 +245,25 @@ public:
 		}
 		else {
 
-			if (meas > tar + 0.2) {
-				target = tar - 0.2;
+			if (meas > target + 0.2) {
+				targetComp = target - 0.2;
 			}
-			else if (meas < tar - 0.2) {
-				target = tar + 0.2;
+			else if (meas < target - 0.2) {
+				targetComp = target + 0.2;
 			}
 
 			cpt = 0;
-			if (tempSensor.GetTemp() < target ) {
+			if (tempSensor.GetTemp() < targetComp ) {
 				valve.OpenValve();
 			}
 			else {
 				valve.CloseValve();
 			}
 		}
+	}
+
+	void SetTarget(float value) {
+		target = value;
 	}
 
 	uint32_t GetCpt() {
@@ -290,7 +284,7 @@ public:
 
 	String GetTargetAsString() {
 		//return String(tempTarget.ReadTemp());
-		return String(target);
+		return String(targetComp);
 	}
 
 	String GetTempStartAsString() {
@@ -312,13 +306,14 @@ public:
 			return "C";
 	}
 
-	PersistTempTarget tempTarget;
+	//PersistTempTarget tempTarget;
 
 	RadioSensor& GetSensor() {
 		return tempSensor;
 	}
 
 private:
+	float targetComp;
 	float target;
 	uint32_t duty;
 	uint32_t freq;

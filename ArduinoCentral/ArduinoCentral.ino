@@ -23,8 +23,8 @@ int loopCount = 0;
 
 
 //#define BOARD_FLOOR_1		0U	// Etage
-//#define BOARD_FLOOR_0		10U	// Rez de chaussé
-#define BOARD_FLOOR_M1	20U  // Sous sol
+#define BOARD_FLOOR_0		10U	// Rez de chaussé
+//#define BOARD_FLOOR_M1	20U  // Sous sol
 
 #ifdef  BOARD_FLOOR_1
 	#define FLOOR	BOARD_FLOOR_1
@@ -52,11 +52,11 @@ uint16_t tick_meas;
 
 #ifdef  BOARD_FLOOR_1
 Room rooms[] = {
-	Room(0, radioSensors[1], 18, 0),
+	Room(0, radioSensors[1], 19, 0),
 	Room(1, radioSensors[2], 19, 1),
-	Room(2, radioSensors[3], 21, 2),
-	Room(3, radioSensors[4], 21, 3),
-	Room(4, radioSensors[5], 21, 4),
+	Room(2, radioSensors[3], 22, 2),
+	Room(3, radioSensors[4], 19, 3),
+	Room(4, radioSensors[5], 20, 4),
 	Room(5, radioSensors[6], 21, 5)
 };
 uint16_t nbrRoom = 5;
@@ -64,24 +64,24 @@ uint16_t nbrRoom = 5;
 
 #ifdef  BOARD_FLOOR_0
 Room rooms[] = {
-	Room(0, radioSensors[1], 22, 0), // Valve 1, capteur 11, Salon TV
-	Room(1, radioSensors[1], 22, 1), // Valve 2, capteur 11, Salon
-	Room(2, radioSensors[4], 22, 2), // Valve
-	Room(3, radioSensors[2], 22, 3), // Valve 4, capteur 12, Cuisine
-	Room(4, radioSensors[3], 22, 4), // Valve 5, capteur 13, Hall
-	Room(5, radioSensors[6], 22, 5)
+	Room(0, radioSensors[1], 22), // Valve 1, capteur 11, Salon TV
+	Room(1, radioSensors[1], 22), // Valve 2, capteur 11, Salon
+	Room(2, radioSensors[4], 22), // Valve
+	Room(3, radioSensors[2], 22), // Valve 4, capteur 12, Cuisine
+	Room(4, radioSensors[3], 22), // Valve 5, capteur 13, Hall
+	Room(5, radioSensors[6], 22)
 };
 uint16_t nbrRoom = 5;
 #endif 
 
 #ifdef  BOARD_FLOOR_M1
 Room rooms[] = {
-	Room(0, radioSensors[1], 18, 0),
-	Room(1, radioSensors[2], 19, 1),
-	Room(2, radioSensors[3], 21, 2),
-	Room(3, radioSensors[4], 21, 3),
-	Room(4, radioSensors[5], 21, 4),
-	Room(5, radioSensors[6], 21, 5)
+	Room(0, radioSensors[1], 19),
+	Room(1, radioSensors[2], 19),
+	Room(2, radioSensors[3], 21),
+	Room(3, radioSensors[4], 21),
+	Room(4, radioSensors[5], 21),
+	Room(5, radioSensors[6], 21)
 };
 uint16_t nbrRoom = 5;
 #endif 
@@ -123,7 +123,6 @@ void ConfigureESP() {
 	}
 
 	for (uint16_t k = 0; k < nbrRoom; k++) {
-		rooms[k].tempTarget.Initialize();
 		rooms[k].SetDefaultPwm(1200, 600);
 		do {
 			rep = sendCmd(  "nroom," + 
@@ -246,8 +245,9 @@ void CheckConnexionWifi() {
 			String val = GetNextValue(&rs);
 
 			if (newVal) {
-				rooms[r].tempTarget.SetTemp(val.toFloat());
+				rooms[r].SetTarget( val.toFloat() );
 				Serial.println("Update target : " + String(id) + " -- " + val);
+				sendCmd("srt," + String(id) + "," + val);
 			}
 		}
 	}
