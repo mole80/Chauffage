@@ -68,7 +68,7 @@ Room rooms[] = {
 	Room(1, radioSensors[1], 22), // Valve 2, capteur 11, Salon
 	Room(2, radioSensors[4], 22), // Valve
 	Room(3, radioSensors[2], 22), // Valve 4, capteur 12, Cuisine
-	Room(4, radioSensors[3], 22), // Valve 5, capteur 13, Hall
+	Room(4, radioSensors[3], 21), // Valve 5, capteur 13, Hall
 	Room(5, radioSensors[6], 22)
 };
 uint16_t nbrRoom = 5;
@@ -172,8 +172,7 @@ void setup()
 #else
 	serialRadio = &Serial1;
 #endif
-//serialRadio->begin(1200);
-	Serial3.begin(1200);
+	serialRadio->begin(1200);
 
 		
 //#define PROG_ESP8266
@@ -319,11 +318,8 @@ void loop(){
 
 #endif // USE_ESP
 
-	//while (serialRadio->available() > 0) {		
-		//comBuff.AddValue( serialRadio->read() );
-	//}
-	while (Serial3.available() > 0) {		
-		comBuff.AddValue( Serial3.read() );
+	while (serialRadio->available() > 0) {		
+		comBuff.AddValue( serialRadio->read() );
 	}
 
 	/*Serial.println(
