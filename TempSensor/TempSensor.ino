@@ -23,7 +23,7 @@
 volatile int f_timer = 0;
 
 
-#define TEST_RADIO
+//#define TEST_RADIO
 
 
 #define SENSOR_ID 15

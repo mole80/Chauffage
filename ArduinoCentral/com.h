@@ -3,7 +3,7 @@
 
 #define PRINT_INFO	true
 
-//#define PRINT_COMMAND
+#define PRINT_COMMAND
 
 #ifdef PRINT_COMMAND
 	#define USE_ESP

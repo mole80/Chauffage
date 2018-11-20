@@ -23,8 +23,8 @@ int loopCount = 0;
 
 
 //#define BOARD_FLOOR_1		0U	// Etage
-#define BOARD_FLOOR_0		10U	// Rez de chaussé
-//#define BOARD_FLOOR_M1	20U  // Sous sol
+//#define BOARD_FLOOR_0		10U	// Rez de chaussé
+#define BOARD_FLOOR_M1	20U  // Sous sol
 
 #ifdef  BOARD_FLOOR_1
 	#define FLOOR	BOARD_FLOOR_1
@@ -163,12 +163,25 @@ void ConfigureESP() {
 	tick_meas = 0;
 }
 
+HardwareSerial *serialRadio;
+
 void setup()
 {
+
+#ifdef BOARD_FLOOR_M1
+	serialRadio = &Serial3;
+#else
+	serialRadio = &Serial1;
+#endif
+//serialRadio->begin(1200);
+	Serial3.begin(1200);
+
+		
 //#define PROG_ESP8266
 #ifndef PROG_ESP8266
 	Serial2.begin(115200);
 	Serial2.setTimeout(10);
+
 	//wdt_enable(4000);
 	//Mettre pin comm TX sur esp en input pour éviter le conflit pour 
 	//re-programmer le module ESP8266
@@ -184,7 +197,6 @@ void setup()
 	pinMode(5, OUTPUT);
 	pinMode(6, OUTPUT);
 
-	Serial1.begin(1200);
 	Serial.begin(115200);
 
 	delay(500);
@@ -265,10 +277,11 @@ void loop(){
 	wdt_reset();
 	int adcTempStart = analogRead(0);
 
+#ifdef USE_ESP
 	if (cpt_update_meas_temp <= 0) {
 		cpt_update_meas_temp = 10;
-		
-		CheckConnexionWifi();
+	
+	CheckConnexionWifi();
 		
 		for (uint16_t k = 0; k < nbrRoom; k++) {
 			if (rooms[k].GetId() >= 0) {
@@ -304,8 +317,13 @@ void loop(){
 		cpt_update_meas_temp--;
 	}
 
-	while (Serial1.available() > 0) {		
-		comBuff.AddValue( Serial1.read() );
+#endif // USE_ESP
+
+	//while (serialRadio->available() > 0) {		
+		//comBuff.AddValue( serialRadio->read() );
+	//}
+	while (Serial3.available() > 0) {		
+		comBuff.AddValue( Serial3.read() );
 	}
 
 	/*Serial.println(
@@ -349,8 +367,8 @@ void loop(){
 						);
 					}*/
 
-					//if (check == buff[6] && index < 10 && index >= 0)
 					if (id != lastSensorId && check == buff[6] && index < 10 && index >= 0)
+					//if (check == buff[6] && index < 10 && index >= 0)
 					{
 						RadioSensor& r = radioSensors[index];
 
